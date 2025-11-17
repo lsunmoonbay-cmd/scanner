@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Camera Gem Scanner - External Site</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #0a192f, #1a3658);
+            color: #fff;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .camera-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 25px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 15px;
+            border: 2px solid #00d4ff;
+        }
+        
+        .camera-title {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            color: #00d4ff;
+        }
+        
+        .camera-interface {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+        }
+        
+        @media (max-width: 768px) {
+            .camera-interface {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        .camera-section, .analysis-section {
+            background: rgba(0, 0, 0, 0.6);
+            border-radius: 15px;
+            padding: 25px;
+            border: 2px solid #00d4ff;
+        }
+        
+        .camera-container {
+            width: 100%;
+            height: 400px;
+            background: #000;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+            border: 3px solid #00ff00;
+        }
+        
+        #liveVideo {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transform: scaleX(-1);
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: none;
+        }
+        
+        .scan-frame {
+            width: 250px;
+            height: 250px;
+            border: 3px solid #00ff00;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0, 255, 0, 0.5);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { border-color: #00ff00; box-shadow: 0 0 30px rgba(0, 255, 0, 0.5); }
+            50% { border-color: #00d4ff; box-shadow: 0 0 40px rgba(0, 212, 255, 0.8); }
+        }
+        
+        .camera-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .cam-btn {
+            padding: 15px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(45deg, #00d4ff, #0099cc);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .cam-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 212, 255, 0.4);
+        }
+        
+        .cam-btn:disabled {
+            background: #666;
+            cursor: not-allowed;
+        }
+        
+        .scan-btn {
+            background: linear-gradient(45deg, #00ff00, #00cc00);
+            grid-column: 1 / -1;
+        }
+        
+        .camera-status {
+            background: rgba(255,255,255,0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            text-align: center;
+            border: 1px solid #00d4ff;
+        }
+        
+        .analysis-results {
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .result-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .result-card {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #00d4ff;
+        }
+        
+        .result-label {
+            font-size: 0.9rem;
+            color: #ccc;
+            margin-bottom: 5px;
+        }
+        
+        .result-value {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: #fff;
+        }
+        
+        .gem-preview {
+            width: 100%;
+            height: 150px;
+            background: #000;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        #capturedImage {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="camera-header">
+            <h1 class="camera-title">📷 LIVE CAMERA GEM SCANNER</h1>
+            <p>Real-time Camera Analysis - External Website</p>
+        </header>
+
+        <div class="camera-interface">
+            <!-- Camera Section -->
+            <div class="camera-section">
+                <h3>📹 LIVE CAMERA FEED</h3>
+                
+                <div class="camera-container">
+                    <video id="liveVideo" autoplay playsinline></video>
+                    <div class="camera-overlay">
+                        <div class="scan-frame"></div>
+                    </div>
+                </div>
+                
+                <div class="camera-status" id="cameraStatus">
+                    Click "Start Camera" to begin live scanning
+                </div>
+                
+                <div class="camera-controls">
+                    <button class="cam-btn" id="startCamera" onclick="startCamera()">
+                        🎥 Start Camera
+                    </button>
+                    <button class="cam-btn" id="stopCamera" onclick="stopCamera()" disabled>
+                        ⏹️ Stop Camera
+                    </button>
+                    <button class="cam-btn scan-btn" id="scanGem" onclick="scanGem()" disabled>
+                        🔍 Scan & Analyze
+                    </button>
+                </div>
+            </div>
+
+            <!-- Analysis Section -->
+            <div class="analysis-section">
+                <h3>📊 ANALYSIS RESULTS</h3>
+                
+                <div class="analysis-results">
+                    <div class="result-grid">
+                        <div class="result-card">
+                            <div class="result-label">Gem Type</div>
+                            <div class="result-value" id="gemType">--</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">Confidence</div>
+                            <div class="result-value" id="confidence">--</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">Specific Gravity</div>
+                            <div class="result-value" id="specificGravity">--</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">Refractive Index</div>
+                            <div class="result-value" id="refractiveIndex">--</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">Hardness (Mohs)</div>
+                            <div class="result-value" id="hardness">--</div>
+                        </div>
+                        <div class="result-card">
+                            <div class="result-label">Color Analysis</div>
+                            <div class="result-value" id="colorAnalysis">--</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="gem-preview">
+                    <canvas id="capturedImage"></canvas>
+                    <div id="noPreview">No scan captured</div>
+                </div>
+                
+                <div class="camera-status" id="analysisStatus">
+                    Ready for scanning
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM Elements
+        const video = document.getElementById('liveVideo');
+        const startCameraBtn = document.getElementById('startCamera');
+        const stopCameraBtn = document.getElementById('stopCamera');
+        const scanGemBtn = document.getElementById('scanGem');
+        const cameraStatus = document.getElementById('cameraStatus');
+        const analysisStatus = document.getElementById('analysisStatus');
+        const capturedImage = document.getElementById('capturedImage');
+        const noPreview = document.getElementById('noPreview');
+
+        // Result elements
+        const gemType = document.getElementById('gemType');
+        const confidence = document.getElementById('confidence');
+        const specificGravity = document.getElementById('specificGravity');
+        const refractiveIndex = document.getElementById('refractiveIndex');
+        const hardness = document.getElementById('hardness');
+        const colorAnalysis = document.getElementById('colorAnalysis');
+
+        let stream = null;
+
+        // Gem database
+        const gemDatabase = {
+            'Sapphire': { sg: '4.01', ri: '1.762-1.770', hardness: '9.0', color: 'Royal Blue' },
+            'Ruby': { sg: '4.02', ri: '1.76', hardness: '9.0', color: 'Deep Red' },
+            'Emerald': { sg: '2.76', ri: '1.58', hardness: '7.5', color: 'Vivid Green' },
+            'Diamond': { sg: '3.52', ri: '2.42', hardness: '10', color: 'Colorless' },
+            'Amethyst': { sg: '2.65', ri: '1.54', hardness: '7', color: 'Violet Purple' }
+        };
+
+        // Start camera function
+        async function startCamera() {
+            try {
+                cameraStatus.textContent = '🔄 Starting camera...';
+                cameraStatus.style.background = 'rgba(255, 193, 7, 0.3)';
+                
+                const constraints = {
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 },
+                        facingMode: 'environment'
+                    }
+                };
+
+                stream = await navigator.mediaDevices.getUserMedia(constraints);
+                video.srcObject = stream;
+
+                video.onloadedmetadata = () => {
+                    video.play();
+                    cameraStatus.textContent = '✅ Camera active - Live feed running';
+                    cameraStatus.style.background = 'rgba(76, 175, 80, 0.3)';
+                    startCameraBtn.disabled = true;
+                    stopCameraBtn.disabled = false;
+                    scanGemBtn.disabled = false;
+                };
+
+            } catch (err) {
+                console.error('Camera error:', err);
+                cameraStatus.textContent = '❌ Camera access denied';
+                cameraStatus.style.background = 'rgba(244, 67, 54, 0.3)';
+                
+                if (err.name === 'NotAllowedError') {
+                    alert('Camera permission denied. Please allow camera access in your browser settings.');
+                }
+            }
+        }
+
+        // Stop camera function
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                stream = null;
+            }
+            video.srcObject = null;
+            cameraStatus.textContent = '⏹️ Camera stopped';
+            cameraStatus.style.background = 'rgba(255,255,255,0.1)';
+            startCameraBtn.disabled = false;
+            stopCameraBtn.disabled = true;
+            scanGemBtn.disabled = true;
+        }
+
+        // Scan and analyze gem
+        function scanGem() {
+            if (!stream) {
+                alert('Please start the camera first!');
+                return;
+            }
+
+            analysisStatus.textContent = '🔍 Scanning gem...';
+            analysisStatus.style.background = 'rgba(255, 193, 7, 0.3)';
+
+            // Capture current frame
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Display captured image
+            const previewCtx = capturedImage.getContext('2d');
+            capturedImage.width = canvas.width;
+            capturedImage.height = canvas.height;
+            previewCtx.drawImage(canvas, 0, 0);
+            capturedImage.style.display = 'block';
+            noPreview.style.display = 'none';
+
+            // Simulate analysis
+            setTimeout(() => {
+                const gems = Object.keys(gemDatabase);
+                const randomGem = gems[Math.floor(Math.random() * gems.length)];
+                const gem = gemDatabase[randomGem];
+                const conf = (85 + Math.random() * 14).toFixed(1) + '%';
+
+                gemType.textContent = randomGem;
+                confidence.textContent = conf;
+                specificGravity.textContent = gem.sg;
+                refractiveIndex.textContent = gem.ri;
+                hardness.textContent = gem.hardness;
+                colorAnalysis.textContent = gem.color;
+
+                analysisStatus.textContent = `✅ Analysis complete: ${randomGem} identified`;
+                analysisStatus.style.background = 'rgba(76, 175, 80, 0.3)';
+            }, 2000);
+        }
+
+        // Auto-start camera on load (optional)
+        // window.addEventListener('load', startCamera);
+    </script>
+</body>
+</html>
